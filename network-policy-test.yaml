@@ -1,0 +1,97 @@
+# Calico NetworkPolicy 테스트를 위한 매니페스트
+
+# 테스트용 네임스페이스
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: policy-test
+---
+# 웹 애플리케이션
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  namespace: policy-test
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.14
+        ports:
+        - containerPort: 80
+---
+# 데이터베이스 애플리케이션
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+  namespace: policy-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+      - name: database
+        image: postgres:10
+        env:
+        - name: POSTGRES_PASSWORD
+          value: "password"
+---
+# 웹 서비스
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+  namespace: policy-test
+spec:
+  selector:
+    app: web
+  ports:
+  - port: 80
+---
+# 데이터베이스 서비스
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-service
+  namespace: policy-test
+spec:
+  selector:
+    app: database
+  ports:
+  - port: 5432
+---
+# NetworkPolicy: 데이터베이스는 웹 앱에서만 접근 허용
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: database-policy
+  namespace: policy-test
+spec:
+  podSelector:
+    matchLabels:
+      app: database
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: web
+    ports:
+    - protocol: TCP
+      port: 5432

@@ -1,0 +1,38 @@
+# Vagrant 관련 파일들
+.vagrant/
+*.log
+
+# VirtualBox 관련
+.vbox-prev
+
+# 조인 명령어 파일 (마스터에서 생성되는 임시 파일)
+join-command.sh
+
+# SSH 키 파일
+*.key
+*.pem
+
+# 로그 파일
+*.log
+nohup.out
+
+# 임시 파일
+*.tmp
+*.swp
+*~
+
+# macOS 관련
+.DS_Store
+
+# 백업 파일
+*.bak
+*.backup
+
+# IDE 관련
+.vscode/
+.idea/
+*.iml
+
+# 기타 임시 디렉토리
+tmp/
+temp/
