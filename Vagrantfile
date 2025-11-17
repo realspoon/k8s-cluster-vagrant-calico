@@ -4,6 +4,11 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/bionic64"
 
+  # Disable vbguest plugin to avoid compatibility issues
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    config.vbguest.auto_update = false
+  end
+
   # 마스터 노드 설정
   config.vm.define "k8s-master" do |master|
     master.vm.hostname = "k8s-master"

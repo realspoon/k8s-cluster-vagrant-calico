@@ -17,7 +17,7 @@ add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(
 
 # Docker CE 18.06 설치 (Kubernetes 1.11과 호환)
 apt-get update
-apt-get install -y docker-ce=5:18.06.3~ce~3-0~ubuntu containerd.io
+apt-get install -y docker-ce=18.06.0~ce~3-0~ubuntu containerd.io
 
 # Docker 서비스 시작 및 활성화
 systemctl enable docker
@@ -27,23 +27,34 @@ systemctl start docker
 usermod -aG docker vagrant
 
 echo "=== Kubernetes 패키지 설치 ==="
-# Kubernetes GPG 키 추가
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+# Kubernetes 1.11.10 패키지 직접 다운로드 및 설치
+cd /tmp
 
-# Kubernetes 저장소 추가
-cat <<EOF > /etc/apt/sources.list.d/kubernetes.list
-deb https://apt.kubernetes.io/ kubernetes-xenial main
-EOF
+# CNI 플러그인 다운로드
+CNI_VERSION="v0.6.0"
+mkdir -p /opt/cni/bin
+curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" | tar -C /opt/cni/bin -xz
 
-# 패키지 목록 업데이트
-apt-get update
+# crictl 다운로드
+CRICTL_VERSION="v1.11.0"
+curl -L "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-amd64.tar.gz" | tar -C /usr/local/bin -xz
 
-# Kubernetes 1.11.x 버전 설치
-K8S_VERSION="1.11.10-00"
-apt-get install -y kubelet=$K8S_VERSION kubeadm=$K8S_VERSION kubectl=$K8S_VERSION
+# Kubernetes 바이너리 직접 다운로드
+K8S_VERSION="v1.11.10"
+RELEASE_VERSION="v0.3.0"
 
-# 패키지 자동 업데이트 방지
-apt-mark hold kubelet kubeadm kubectl
+# kubeadm, kubelet, kubectl 다운로드
+cd /usr/bin
+curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+chmod +x {kubeadm,kubelet,kubectl}
+
+# kubelet systemd 서비스 파일 다운로드
+curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${K8S_VERSION}/build/debs/kubelet.service" | sed "s:/usr/bin:/usr/bin:g" > /etc/systemd/system/kubelet.service
+mkdir -p /etc/systemd/system/kubelet.service.d
+curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${K8S_VERSION}/build/debs/10-kubeadm.conf" | sed "s:/usr/bin:/usr/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+# systemd 리로드
+systemctl daemon-reload
 
 echo "=== 시스템 설정 ==="
 # swap 비활성화
