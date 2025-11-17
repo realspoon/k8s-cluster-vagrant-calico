@@ -106,11 +106,41 @@ vagrant halt
 vagrant destroy
 ```
 
-## 주의사항
+## 시스템 요구사항
 
+### 필수 사항
+- **운영체제**: macOS (Intel 프로세서)
+- **가상화**: VirtualBox 7.0 이상
+- **Vagrant**: 2.4.0 이상
+- **메모리**: 최소 8GB RAM (권장 16GB)
+- **디스크**: 최소 20GB 여유 공간
+
+### 지원되는 환경
+- ✅ Intel 기반 Mac (x86_64)
+- ❌ Apple Silicon Mac (M1/M2/M3) - **현재 지원되지 않음**
+
+## 제한사항
+
+### Apple Silicon (M1/M2/M3) Mac 비호환
+현재 이 프로젝트는 **Intel 기반 Mac에서만** 작동합니다. Apple Silicon Mac에서는 다음과 같은 문제가 있습니다:
+
+1. **VirtualBox 미지원**: VirtualBox가 Apple Silicon을 공식 지원하지 않습니다
+2. **아키텍처 불일치**:
+   - 현재 스크립트는 `amd64` (x86_64) 아키텍처용 바이너리를 다운로드합니다
+   - Apple Silicon은 `arm64` 아키텍처가 필요합니다
+3. **Ubuntu 이미지**: `ubuntu/bionic64` 박스는 x86_64 전용입니다
+
+### Apple Silicon Mac 대안
+- **UTM**: ARM64 Ubuntu VM 사용 (무료)
+- **Parallels Desktop**: ARM64 가상화 지원 (유료)
+- **Docker Desktop + Kind/k3d**: 컨테이너 기반 Kubernetes
+- **Multipass**: Canonical의 경량 VM 솔루션
+
+### 기타 주의사항
 - 마스터 노드가 완전히 초기화된 후 워커 노드를 시작해야 합니다
-- 각 VM은 2GB RAM을 사용하므로 충분한 메모리가 필요합니다
+- 각 VM은 2GB RAM을 사용하므로 총 4GB RAM이 할당됩니다
 - VirtualBox 네트워크 설정으로 인해 방화벽 경고가 나올 수 있습니다
+- Kubernetes 1.11은 EOL(End of Life) 버전이므로 프로덕션 환경에서는 사용하지 마세요
 
 ## 파일 구조
 
